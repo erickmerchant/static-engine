@@ -5,9 +5,7 @@ nunjucks.configure('', {
     autoescape: true
 });
 
-var site = engine.site('./build/');
-
-site.engine(nunjucks.render);
+var site = engine.site('./build/', nunjucks.render);
 
 site.route('/').use({ }).render('template.html');
 
