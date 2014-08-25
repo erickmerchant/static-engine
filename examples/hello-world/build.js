@@ -7,7 +7,7 @@ nunjucks.configure('', {
 
 var site = engine.site('./build/', nunjucks.render);
 
-site.route('/').use({ }).render('template.html');
+site.route('/').render('template.html');
 
 site.route('/{name}.html').use({ name: 'Erick' }).render('template.html');
 
