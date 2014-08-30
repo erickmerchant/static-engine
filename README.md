@@ -10,7 +10,7 @@ A package for building static web content.
   "name": "hello-world",
   "dependencies": {
     "nunjucks": "^1.0.5",
-    "static-engine": "0.0.2"
+    "static-engine": "0.0.6"
   }
 }
 ```
@@ -29,11 +29,9 @@ nunjucks.configure('', {
     autoescape: true
 });
 
-var site = engine.site('./build/');
+var site = engine.site('./build/', nunjucks.render);
 
-site.engine(nunjucks.render);
-
-site.route('/').use({ }).render('template.html');
+site.route('/').render('template.html');
 
 site.route('/{name}.html').use({ name: 'Erick' }).render('template.html');
 
