@@ -10,14 +10,14 @@ A package for building static web content.
   "name": "hello-world",
   "dependencies": {
     "nunjucks": "^1.0.5",
-    "static-engine": "0.0.6"
+    "static-engine": "0.1.0"
   }
 }
 ```
 
 ```html
 {# template.html #}
-<p>Hello {{ page.name|default('world') }}!</p>
+<p>Hello {{ name|default('world') }}!</p>
 ```
 
 ```js
