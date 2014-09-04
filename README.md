@@ -10,7 +10,7 @@ A package for building static web content.
   "name": "hello-world",
   "dependencies": {
     "nunjucks": "^1.0.5",
-    "static-engine": "0.2.0"
+    "static-engine": "0.3.0"
   }
 }
 ```
