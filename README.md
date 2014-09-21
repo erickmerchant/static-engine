@@ -12,7 +12,7 @@ A package for building static web content.
   "name": "hello-world",
   "dependencies": {
     "nunjucks": "^1.0.5",
-    "static-engine": "0.4.1"
+    "static-engine": "1.0.0"
   }
 }
 ```
@@ -26,7 +26,15 @@ A package for building static web content.
 // build.js
 var nunjucks = require('nunjucks');
 var engine = require('static-engine');
-var push = engine.plugins.push;
+var push = function (literal) {
+
+    return function (pages, next) {
+
+        pages.push(literal);
+
+        next(pages);
+    };
+};
 
 nunjucks.configure('', {
     autoescape: true

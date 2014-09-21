@@ -1,6 +1,14 @@
 var nunjucks = require('nunjucks');
 var engine = require('static-engine');
-var push = engine.plugins.push;
+var push = function (literal) {
+
+    return function (pages, next) {
+
+        pages.push(literal);
+
+        next(pages);
+    };
+};
 
 nunjucks.configure('', {
     autoescape: true
