@@ -1,6 +1,6 @@
 {
   "name": "static-engine",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "A package for building static web content.",
   "main": "index.js",
   "repository": "erickmerchant/static-engine",
@@ -20,6 +20,6 @@
     "moment": "^2.7.0",
     "q": "^1.0.1",
     "require-dir": "^0.1.0",
-    "trimmer": "0.0.3"
+    "trimmer": "^1.0.0"
   }
 }

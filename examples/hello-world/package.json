@@ -2,6 +2,6 @@
   "name": "hello-world",
   "dependencies": {
     "nunjucks": "^1.0.5",
-    "static-engine": "0.4.0"
+    "static-engine": "0.4.1"
   }
 }
