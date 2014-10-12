@@ -1,6 +1,5 @@
 'use strict';
 
-var _ = require('lodash');
 var path = require('path');
 var fs = require('fs');
 var trim = require('trimmer');
@@ -21,8 +20,8 @@ function Site(site_directory, template_engine) {
 
     this.afters = [];
 
-    this.index_page = 'index.html'
-};
+    this.index_page = 'index.html';
+}
 
 Site.prototype.route = function (route) {
 
@@ -37,11 +36,15 @@ Site.prototype.build = function () {
 
     var build_deferred = Q.defer();
 
-    _.forOwn(this.routes, function (route) {
+    var route;
 
-        route_promises.push(route.run());
+    for(route in this.routes) {
 
-    });
+        if (this.routes.hasOwnProperty(route)) {
+
+            route_promises.push(this.routes[route].run());
+        }
+    }
 
     Q.all(route_promises).then(function () {
 
@@ -70,7 +73,7 @@ function Route(route, site) {
     this.middleware = [];
 
     this.pages = [];
-};
+}
 
 Route.prototype.alias = function (alias) {
 
@@ -81,7 +84,7 @@ Route.prototype.alias = function (alias) {
 
 Route.prototype.use = function (use) {
 
-    if (_.isFunction(use)) {
+    if (typeof use == 'function') {
 
         this.middleware.push(use);
 
@@ -147,7 +150,7 @@ Route.prototype.finish = function (pages) {
             pages = [{}];
         }
 
-        _.each(pages, function (page) {
+        pages.forEach(function (page) {
 
             var render_deferred = Q.defer();
 
