@@ -14,7 +14,7 @@ nunjucks.configure('', {
     autoescape: true
 });
 
-var site = engine.site('./build/', nunjucks.render);
+var site = engine('./build/', nunjucks.render);
 
 site.route('/').render('template.html');
 
