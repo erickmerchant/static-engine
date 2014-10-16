@@ -5,7 +5,7 @@
   "main": "index.js",
   "repository": "erickmerchant/static-engine",
   "keywords": [
-      "static-engine"
+    "static-engine"
   ],
   "author": "Erick Merchant <erickmerchant@gmail.com>",
   "license": "MIT",
