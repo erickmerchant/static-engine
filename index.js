@@ -7,6 +7,107 @@ var Q = require('q');
 var interpolate = require('interpolate');
 var mkdirp = require('mkdirp');
 
+function run_middleware(site, route) {
+
+    var i = -1;
+
+    var middleware = site.routes[route].middleware;
+
+    var run_deferred = Q.defer();
+
+    Array.prototype.unshift.apply(middleware, site.befores);
+
+    Array.prototype.push.apply(middleware, site.afters);
+
+    function next(pages) {
+
+        if (++i < middleware.length) {
+
+            middleware[i](pages, next);
+
+            return;
+        }
+
+        run_deferred.resolve(pages);
+    };
+
+    next([]);
+
+    return run_deferred.promise;
+};
+
+function make_pages(site, route, pages) {
+
+    var render_promises = [];
+
+    var make_deferred = Q.defer();
+
+    if (site.routes[route].template) {
+
+        if (!pages.length) {
+
+            pages = [{}];
+        }
+
+        pages.forEach(function (page) {
+
+            var render_deferred = Q.defer();
+
+            render_promises.push(render_deferred.promise);
+
+            site.renderer && site.renderer(site.routes[route].template, page, function (err, html) {
+
+                var url = interpolate(site.routes[route].route, page || {});
+
+                if (url.substr(-1) == '/') {
+
+                    url += site.index_page;
+                }
+
+                var file = site.site_directory + trim.left(url, '/');
+
+                var directory;
+
+                directory = path.dirname(file);
+
+                mkdirp(directory, function (err) {
+
+                    if (err) throw err;
+
+                    fs.writeFile(file, html, function (err, data) {
+
+                        if (err) throw err;
+
+                        render_deferred.resolve();
+                    });
+                });
+            });
+        });
+    }
+
+    Q.all(render_promises).then(function () {
+
+        make_deferred.resolve();
+    });
+
+    return make_deferred.promise;
+};
+
+function run_route(site, route) {
+
+    var run_deferred = Q.defer();
+
+    Q.when(run_middleware(site, route)).then(function(pages){
+
+        Q.when(make_pages(site, route, pages)).then(function () {
+
+            run_deferred.resolve();
+        });
+    });
+
+    return run_deferred.promise;
+}
+
 function Site(site_directory, renderer) {
 
     this.site_directory = site_directory;
@@ -41,7 +142,7 @@ Site.prototype.build = function () {
 
         if (this.routes.hasOwnProperty(route)) {
 
-            route_promises.push(this.routes[route].run());
+            route_promises.push(run_route(this, route));
         }
     }
 
@@ -96,99 +197,6 @@ Route.prototype.use = function (use) {
 Route.prototype.render = function (template) {
 
     this.template = template;
-};
-
-Route.prototype.run = function () {
-
-    var i = -1;
-
-    var middleware = this.middleware;
-
-    var route = this;
-
-    var run_deferred = Q.defer();
-
-    Array.prototype.unshift.apply(middleware, route.site.befores);
-
-    Array.prototype.push.apply(middleware, route.site.afters);
-
-    function next(pages) {
-
-        if (++i < middleware.length) {
-
-            middleware[i](pages, next);
-
-            return;
-        }
-
-        Q.when(route.finish(pages)).then(function () {
-
-            run_deferred.resolve();
-        });
-    };
-
-    next([]);
-
-    return run_deferred.promise;
-};
-
-Route.prototype.finish = function (pages) {
-
-    var route = this;
-
-    var render_promises = [];
-
-    var finalize_deferred = Q.defer();
-
-    if (route.template) {
-
-        if (!pages.length) {
-
-            pages = [{}];
-        }
-
-        pages.forEach(function (page) {
-
-            var render_deferred = Q.defer();
-
-            render_promises.push(render_deferred.promise);
-
-            route.site.renderer && route.site.renderer(route.template, page, function (err, html) {
-
-                var url = interpolate(route.route, page || {});
-
-                if (url.substr(-1) == '/') {
-
-                    url += route.site.index_page;
-                }
-
-                var file = route.site.site_directory + trim.left(url, '/');
-
-                var directory;
-
-                directory = path.dirname(file);
-
-                mkdirp(directory, function (err) {
-
-                    if (err) throw err;
-
-                    fs.writeFile(file, html, function (err, data) {
-
-                        if (err) throw err;
-
-                        render_deferred.resolve();
-                    });
-                });
-            });
-        });
-    }
-
-    Q.all(render_promises).then(function () {
-
-        finalize_deferred.resolve();
-    });
-
-    return finalize_deferred.promise;
 };
 
 module.exports = function (site_directory, renderer) {
