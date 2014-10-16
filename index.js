@@ -4,8 +4,42 @@ var path = require('path');
 var fs = require('fs');
 var trim = require('trimmer');
 var Q = require('q');
-var interpolate = require('interpolate');
 var mkdirp = require('mkdirp');
+
+function interpolate(string, data) {
+
+    return string.replace(/{([^{}]*)}/g, function(original, match) {
+
+        var result = data;
+
+        var parts = match.split('.');
+
+        var i = -1;
+
+        while(++i < parts.length - 1) {
+
+            if(typeof result[parts[i]] === 'object') {
+
+                result = result[parts[i]];
+            }
+            else {
+
+                throw Error('failed to interpolate ' + parts.join('.') + ' at ' + parts.slice(0, i+1).join('.'));
+            }
+        }
+
+        if(typeof result[parts[i]] === 'number' || typeof result[parts[i]] === 'string') {
+
+            result = result[parts[i]];
+        }
+        else {
+
+            throw Error('failed to interpolate ' + parts.join('.') + ' at ' + parts.slice(0, i+1).join('.'));
+        }
+
+        return result;
+    });
+};
 
 function run_middleware(site, route) {
 
@@ -57,30 +91,37 @@ function make_pages(site, route, pages) {
 
             site.renderer && site.renderer(site.routes[route].template, page, function (err, html) {
 
-                var url = interpolate(site.routes[route].route, page || {});
+                try
+                {
+                    var url = interpolate(site.routes[route].route, page || {});
 
-                if (url.substr(-1) == '/') {
+                    if (url.substr(-1) == '/') {
 
-                    url += site.index_page;
-                }
+                        url += site.index_page;
+                    }
 
-                var file = site.site_directory + trim.left(url, '/');
+                    var file = site.site_directory + trim.left(url, '/');
 
-                var directory;
+                    var directory;
 
-                directory = path.dirname(file);
+                    directory = path.dirname(file);
 
-                mkdirp(directory, function (err) {
-
-                    if (err) render_deferred.reject(err);
-
-                    fs.writeFile(file, html, function (err, data) {
+                    mkdirp(directory, function (err) {
 
                         if (err) render_deferred.reject(err);
 
-                        render_deferred.resolve();
+                        fs.writeFile(file, html, function (err, data) {
+
+                            if (err) render_deferred.reject(err);
+
+                            render_deferred.resolve();
+                        });
                     });
-                });
+                }
+                catch(e)
+                {
+                    render_deferred.reject(e);
+                }
             });
         });
     }
