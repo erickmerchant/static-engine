@@ -6,7 +6,6 @@ var trim = require('trimmer');
 var Q = require('q');
 var interpolate = require('interpolate');
 var mkdirp = require('mkdirp');
-var methods = {};
 
 function Site(site_directory, template_engine) {
 
@@ -103,8 +102,6 @@ Route.prototype.run = function () {
 
     var i = -1;
 
-    var next;
-
     var middleware = this.middleware;
 
     var route = this;
@@ -115,7 +112,7 @@ Route.prototype.run = function () {
 
     Array.prototype.push.apply(middleware, route.site.afters);
 
-    next = function (pages) {
+    function next(pages) {
 
         if (++i < middleware.length) {
 
@@ -156,8 +153,7 @@ Route.prototype.finish = function (pages) {
 
             render_promises.push(render_deferred.promise);
 
-            route.site.template_engine && route.site.template_engine(route.template,
-                page, function (err, html) {
+            route.site.template_engine && route.site.template_engine(route.template, page, function (err, html) {
 
                     var url = interpolate(route.route, page || {});
 
@@ -166,8 +162,7 @@ Route.prototype.finish = function (pages) {
                         url += route.site.index_page;
                     }
 
-                    var file = route.site.site_directory + trim.left(url,
-                        '/');
+                    var file = route.site.site_directory + trim.left(url, '/');
 
                     var directory;
 
