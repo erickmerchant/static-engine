@@ -7,11 +7,11 @@ var Q = require('q');
 var interpolate = require('interpolate');
 var mkdirp = require('mkdirp');
 
-function Site(site_directory, template_engine) {
+function Site(site_directory, renderer) {
 
     this.site_directory = site_directory;
 
-    this.template_engine = template_engine;
+    this.renderer = renderer;
 
     this.routes = {};
 
@@ -53,14 +53,14 @@ Site.prototype.build = function () {
     return build_deferred.promise;
 };
 
-Site.prototype.before = function (fn) {
+Site.prototype.before = function (before) {
 
-    this.befores.push(fn);
+    this.befores.push(before);
 };
 
-Site.prototype.after = function (fn) {
+Site.prototype.after = function (after) {
 
-    this.afters.push(fn);
+    this.afters.push(after);
 };
 
 function Route(route, site) {
@@ -153,33 +153,33 @@ Route.prototype.finish = function (pages) {
 
             render_promises.push(render_deferred.promise);
 
-            route.site.template_engine && route.site.template_engine(route.template, page, function (err, html) {
+            route.site.renderer && route.site.renderer(route.template, page, function (err, html) {
 
-                    var url = interpolate(route.route, page || {});
+                var url = interpolate(route.route, page || {});
 
-                    if (url.substr(-1) == '/') {
+                if (url.substr(-1) == '/') {
 
-                        url += route.site.index_page;
-                    }
+                    url += route.site.index_page;
+                }
 
-                    var file = route.site.site_directory + trim.left(url, '/');
+                var file = route.site.site_directory + trim.left(url, '/');
 
-                    var directory;
+                var directory;
 
-                    directory = path.dirname(file);
+                directory = path.dirname(file);
 
-                    mkdirp(directory, function (err) {
+                mkdirp(directory, function (err) {
+
+                    if (err) throw err;
+
+                    fs.writeFile(file, html, function (err, data) {
 
                         if (err) throw err;
 
-                        fs.writeFile(file, html, function (err, data) {
-
-                            if (err) throw err;
-
-                            render_deferred.resolve();
-                        });
+                        render_deferred.resolve();
                     });
                 });
+            });
         });
     }
 
@@ -191,8 +191,7 @@ Route.prototype.finish = function (pages) {
     return finalize_deferred.promise;
 };
 
+module.exports = function (site_directory, renderer) {
 
-module.exports = function (site_directory, template_engine) {
-
-    return new Site(site_directory, template_engine);
+    return new Site(site_directory, renderer);
 };
