@@ -72,11 +72,11 @@ function make_pages(site, route, pages) {
 
                 mkdirp(directory, function (err) {
 
-                    if (err) throw err;
+                    if (err) render_deferred.reject(err);
 
                     fs.writeFile(file, html, function (err, data) {
 
-                        if (err) throw err;
+                        if (err) render_deferred.reject(err);
 
                         render_deferred.resolve();
                     });
@@ -85,10 +85,16 @@ function make_pages(site, route, pages) {
         });
     }
 
-    Q.all(render_promises).then(function () {
+    Q.all(render_promises).then(
+        function () {
 
-        make_deferred.resolve();
-    });
+            make_deferred.resolve();
+        },
+        function(err){
+
+            make_deferred.reject(err);
+        }
+    );
 
     return make_deferred.promise;
 };
@@ -97,13 +103,25 @@ function run_route(site, route) {
 
     var run_deferred = Q.defer();
 
-    Q.when(run_middleware(site, route)).then(function(pages){
+    Q.when(run_middleware(site, route)).then(
+        function(pages){
 
-        Q.when(make_pages(site, route, pages)).then(function () {
+            Q.when(make_pages(site, route, pages)).then(
+                function () {
 
-            run_deferred.resolve();
-        });
-    });
+                    run_deferred.resolve();
+                },
+                function(err){
+
+                    run_deferred.reject(err);
+                }
+            );
+        },
+        function(err){
+
+            run_deferred.reject(err);
+        }
+    );
 
     return run_deferred.promise;
 }
@@ -146,10 +164,16 @@ Site.prototype.build = function () {
         }
     }
 
-    Q.all(route_promises).then(function () {
+    Q.all(route_promises).then(
+        function () {
 
-        build_deferred.resolve();
-    });
+            build_deferred.resolve();
+        },
+        function(err) {
+
+            build_deferred.reject(err);
+        }
+    );
 
     return build_deferred.promise;
 };
