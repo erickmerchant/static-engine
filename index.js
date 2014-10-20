@@ -256,12 +256,14 @@ Route.prototype.use = function (use) {
         return this;
     }
 
-    throw new Error("'use' only accepts one function");
+    throw new Error("'use' only accepts a function");
 };
 
 Route.prototype.render = function (template) {
 
     this.template = template;
+
+    return this;
 };
 
 module.exports = function (site_directory, renderer) {
