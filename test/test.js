@@ -30,8 +30,7 @@ describe('engine', function () {
 
         describe('when pages.length == 0', function () {
 
-
-            it('site_directory should contain one file', function (done) {
+            it('site_directory should contain the expected files', function (done) {
 
                 var site = engine(site_directory, render);
 
@@ -43,12 +42,14 @@ describe('engine', function () {
                         if (err) done(err);
                         else {
 
-                            fs.readdir(site_directory, function (err, data) {
+                            fs.readdir(site_directory, function (err, files) {
 
                                 if (err) done(err);
                                 else {
 
-                                    assert.lengthOf(data, 1);
+                                    assert.lengthOf(files, 1);
+
+                                    assert.include(files, 'test.html');
 
                                     done();
                                 }
@@ -61,6 +62,7 @@ describe('engine', function () {
                     }
                 );
             });
+        });
 
 
         });
