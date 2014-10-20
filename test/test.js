@@ -19,7 +19,7 @@ function push(literal) {
 
 function render(template, page, done) {
 
-    done(null, '<p>' + (page && page.test ? page.test : '') + '</p>');
+    done(null, '' + template + ': ' + (page && page.test ? page.test : ''));
 };
 
 beforeEach(function() { mock({'./test/build/': {}})  });
