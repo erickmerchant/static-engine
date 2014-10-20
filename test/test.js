@@ -1,14 +1,11 @@
 var assert = require('chai').assert;
 var engine = require('../index.js');
+var mock = require('mock-fs');
 var fs = require('fs');
-var rimraf = require('rimraf');
 var Q = require('q');
 var site_directory = './test/build/';
 
-function cleanUp(done) {
-
-    rimraf('./test/build/', done);
-};
+mock({});
 
 function push(literal) {
 
@@ -25,7 +22,7 @@ function render(template, page, done) {
     done(null, '<p>' + (page && page.test ? page.test : '') + '</p>');
 };
 
-beforeEach(cleanUp);
+beforeEach(function() { mock({'./test/build/': {}})  });
 
 describe('engine', function () {
 
