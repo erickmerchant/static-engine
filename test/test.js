@@ -19,12 +19,107 @@ function push(literal) {
 
 function render(template, page, done) {
 
-    done(null, '' + template + ': ' + (page && page.test ? page.test : ''));
+    done(null, (page && page.test ? page.test : ''));
 };
 
 beforeEach(function() { mock({'./test/build/': {}})  });
 
-describe('engine', function () {
+describe('site', function () {
+
+    describe('.constructor', function(){
+
+        it('instance should have expected methods', function (done) {
+
+            var site = engine(site_directory, render);
+
+            assert.isFunction(site.route);
+
+            assert.isFunction(site.build);
+
+            assert.isFunction(site.before);
+
+            assert.isFunction(site.after);
+
+            done();
+        });
+    });
+
+    describe('.before', function(){
+
+        it('should add middleware that\'s called before', function (done) {
+
+            var site = engine(site_directory, render);
+
+            site.route('/test.html').render('test.html');
+
+            site.before(function(pages, next){
+
+                pages.push({test: 'test-a'})
+
+                next(pages);
+            });
+
+            Q.when(site.build()).then(
+                function(){
+
+                    fs.readFile(site_directory+'test.html', function (err, data) {
+
+                        if (err) done(err);
+                        else {
+
+                            assert.equal(data, 'test-a');
+
+                            done();
+                        }
+                    });
+                },
+                function(err) {
+
+                    done(err);
+                }
+            );
+        });
+    });
+
+    describe('.after', function(){
+
+        it('should add middleware that\'s called after', function (done) {
+
+            var site = engine(site_directory, render);
+
+            site.route('/test.html').use(push({test:'test-a'})).render('test.html');
+
+            site.after(function(pages, next){
+
+                pages.forEach(function(page, i){
+
+                    pages[i].test = 'test-b';
+                });
+
+                next(pages);
+            });
+
+            Q.when(site.build()).then(
+                function(){
+
+                    fs.readFile(site_directory+'test.html', function (err, data) {
+
+                        if (err) done(err);
+                        else {
+
+                            assert.equal(data, 'test-b');
+
+                            done();
+                        }
+                    });
+                },
+                function(err) {
+
+                    done(err);
+                }
+            );
+        });
+    });
 
     describe('.build()', function () {
 
@@ -37,24 +132,20 @@ describe('engine', function () {
                 site.route('/test.html').render('test.html');
 
                 Q.when(site.build()).then(
-                    function(err){
+                    function(){
 
-                        if (err) done(err);
-                        else {
+                        fs.readdir(site_directory, function (err, files) {
 
-                            fs.readdir(site_directory, function (err, files) {
+                            if (err) done(err);
+                            else {
 
-                                if (err) done(err);
-                                else {
+                                assert.lengthOf(files, 1);
 
-                                    assert.lengthOf(files, 1);
+                                assert.include(files, 'test.html');
 
-                                    assert.include(files, 'test.html');
-
-                                    done();
-                                }
-                            });
-                        }
+                                done();
+                            }
+                        });
                     },
                     function(err) {
 
@@ -73,26 +164,22 @@ describe('engine', function () {
                 site.route('/{test}.html').use(push({test: 'test-a'})).use(push({test: 'test-b'})).render('test.html');
 
                 Q.when(site.build()).then(
-                    function(err){
+                    function(){
 
-                        if (err) done(err);
-                        else {
+                        fs.readdir(site_directory, function (err, files) {
 
-                            fs.readdir(site_directory, function (err, files) {
+                            if (err) done(err);
+                            else {
 
-                                if (err) done(err);
-                                else {
+                                assert.lengthOf(files, 2);
 
-                                    assert.lengthOf(files, 2);
+                                assert.include(files, 'test-a.html');
 
-                                    assert.include(files, 'test-a.html');
+                                assert.include(files, 'test-b.html');
 
-                                    assert.include(files, 'test-b.html');
-
-                                    done();
-                                }
-                            });
-                        }
+                                done();
+                            }
+                        });
                     },
                     function(err) {
 
@@ -132,32 +219,28 @@ describe('engine', function () {
                 site.after(push({test:'test-f'}));
 
                 Q.when(site.build()).then(
-                    function(err){
+                    function(){
 
-                        if (err) done(err);
-                        else {
+                        fs.readdir(site_directory, function (err, files) {
 
-                            fs.readdir(site_directory, function (err, files) {
+                            if (err) done(err);
+                            else {
 
-                                if (err) done(err);
-                                else {
+                                assert.include(files, 'test-a-0.html');
 
-                                    assert.include(files, 'test-a-0.html');
+                                assert.include(files, 'test-b-1.html');
 
-                                    assert.include(files, 'test-b-1.html');
+                                assert.include(files, 'test-c-2.html');
 
-                                    assert.include(files, 'test-c-2.html');
+                                assert.include(files, 'test-d-3.html');
 
-                                    assert.include(files, 'test-d-3.html');
+                                assert.include(files, 'test-e-4.html');
 
-                                    assert.include(files, 'test-e-4.html');
+                                assert.include(files, 'test-f-5.html');
 
-                                    assert.include(files, 'test-f-5.html');
-
-                                    done();
-                                }
-                            });
-                        }
+                                done();
+                            }
+                        });
                     },
                     function(err) {
 
@@ -165,6 +248,154 @@ describe('engine', function () {
                     }
                 );
             });
+        });
+
+        describe('interpolation', function () {
+
+            it('should throw an error when a var isn\'t defined', function (done) {
+
+                var site = engine(site_directory, render);
+
+                site.route('/{test}.html').render('test.html');
+
+                Q.when(site.build()).then(
+                    function(){
+
+                        assert.notOk(true);
+
+                        done();
+                    },
+                    function(err){
+
+                        assert.ok(true);
+
+                        done();
+                    }
+                )
+                .done();
+            });
+        });
+
+        describe('templating', function () {
+
+            it('each file should contain what is expected', function (done) {
+
+                var site = engine(site_directory, render);
+
+                site.route('/test.html').use(push({test: 'test-a'})).render('test.html');
+
+                Q.when(site.build()).then(
+                    function(){
+
+                        fs.readFile(site_directory+'test.html', function (err, data) {
+
+                            if(err) done(err);
+                            {
+                                assert.equal(data, 'test-a');
+
+                                done();
+                            }
+                        });
+                    },
+                    function(err) {
+
+                        done(err);
+                    }
+                );
+            });
+        });
+    });
+
+    describe('.route', function(){
+
+        it('it should create and return a route', function (done) {
+
+            var site = engine(site_directory, render);
+
+            var route = site.route('/test.html');
+
+            assert.equal(route, site.routes['/test.html']);
+
+            assert.isFunction(route.use);
+
+            assert.isFunction(route.alias);
+
+            assert.isFunction(route.render);
+
+            done();
+        });
+    });
+});
+
+describe('route', function(){
+
+    describe('.alias', function(){
+
+        it('should create an alias in site.routes and return the route', function(done) {
+
+            var site = engine(site_directory, render);
+
+            var route = site.route('/test.html');
+
+            var alias = route.alias('a-test');
+
+            assert.equal(route, alias);
+
+            assert.equal(alias, site.routes['a-test']);
+
+            done();
+        });
+    });
+
+    describe('.use', function(){
+
+        it('should throw an error if a function is not given', function(done) {
+
+            var site = engine(site_directory, render);
+
+            var route = site.route('/test.html');
+
+            try
+            {
+                route.use('test');
+
+                assert.notOk(true);
+            }
+            catch(e)
+            {
+                assert.ok(true);
+            }
+
+            done();
+        });
+
+        it('should return the route', function(done) {
+
+            var site = engine(site_directory, render);
+
+            var route = site.route('/test.html');
+
+            var result = route.use(function(){});
+
+            assert.equal(route, result);
+
+            done();
+        });
+    });
+
+    describe('.render', function(){
+
+        it('should return the route', function(done) {
+
+            var site = engine(site_directory, render);
+
+            var route = site.route('/test.html');
+
+            var result = route.render('test.html');
+
+            assert.equal(route, result);
+
+            done();
         });
     });
 });
