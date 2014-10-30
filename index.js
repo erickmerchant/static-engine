@@ -182,51 +182,54 @@ function Site(site_directory, renderer) {
     this.index_page = 'index.html';
 }
 
-Site.prototype.route = function (route) {
+Site.prototype = {
 
-    this.routes[route] = new Route(route, this);
+    route: function (route) {
 
-    return this.routes[route];
-};
+        this.routes[route] = new Route(route, this);
 
-Site.prototype.build = function () {
+        return this.routes[route];
+    },
 
-    var route_promises = [];
+    build: function () {
 
-    var build_deferred = Q.defer();
+        var route_promises = [];
 
-    var route;
+        var build_deferred = Q.defer();
 
-    for(route in this.routes) {
+        var route;
 
-        if (this.routes.hasOwnProperty(route)) {
+        for(route in this.routes) {
 
-            route_promises.push(run_route(this, route));
+            if (this.routes.hasOwnProperty(route)) {
+
+                route_promises.push(run_route(this, route));
+            }
         }
+
+        Q.all(route_promises).then(
+            function () {
+
+                build_deferred.resolve();
+            },
+            function(err) {
+
+                build_deferred.reject(err);
+            }
+        );
+
+        return build_deferred.promise;
+    },
+
+    before: function (before) {
+
+        this.befores.push(before);
+    },
+
+    after: function (after) {
+
+        this.afters.push(after);
     }
-
-    Q.all(route_promises).then(
-        function () {
-
-            build_deferred.resolve();
-        },
-        function(err) {
-
-            build_deferred.reject(err);
-        }
-    );
-
-    return build_deferred.promise;
-};
-
-Site.prototype.before = function (before) {
-
-    this.befores.push(before);
-};
-
-Site.prototype.after = function (after) {
-
-    this.afters.push(after);
 };
 
 function Route(route, site) {
@@ -240,30 +243,33 @@ function Route(route, site) {
     this.pages = [];
 }
 
-Route.prototype.alias = function (alias) {
+Route.prototype = {
 
-    this.site.routes[alias] = this.site.routes[this.route];
+    alias: function (alias) {
 
-    return this;
-};
+        this.site.routes[alias] = this.site.routes[this.route];
 
-Route.prototype.use = function (use) {
+        return this;
+    },
 
-    if (typeof use == 'function') {
+    use: function (use) {
 
-        this.middleware.push(use);
+        if (typeof use == 'function') {
+
+            this.middleware.push(use);
+
+            return this;
+        }
+
+        throw new Error("'use' only accepts a function");
+    },
+
+    render: function (template) {
+
+        this.template = template;
 
         return this;
     }
-
-    throw new Error("'use' only accepts a function");
-};
-
-Route.prototype.render = function (template) {
-
-    this.template = template;
-
-    return this;
 };
 
 module.exports = function (site_directory, renderer) {
