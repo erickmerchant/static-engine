@@ -5,8 +5,6 @@ var fs = require('fs');
 var Q = require('q');
 var site_directory = './test/build/';
 
-mock({});
-
 function push(literal) {
 
     return function (pages, next) {
