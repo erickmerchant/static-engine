@@ -1,171 +1,9 @@
-'use strict';
-
 var path = require('path');
 var fs = require('fs');
 var trim = require('trimmer');
 var Q = require('q');
 var mkdirp = require('mkdirp');
-
-function interpolate(string, data) {
-
-    return string.replace(/{([^{}]*)}/g, function(original, match) {
-
-        var result = data;
-
-        var parts = match.split('.');
-
-        var i = -1;
-
-        while(++i < parts.length - 1) {
-
-            if(typeof result[parts[i]] === 'object') {
-
-                result = result[parts[i]];
-            }
-            else {
-
-                throw Error('failed to interpolate ' + parts.join('.') + ' at ' + parts.slice(0, i+1).join('.'));
-            }
-        }
-
-        if(typeof result[parts[i]] === 'number' || typeof result[parts[i]] === 'string') {
-
-            result = result[parts[i]];
-        }
-        else {
-
-            throw Error('failed to interpolate ' + parts.join('.') + ' at ' + parts.slice(0, i+1).join('.'));
-        }
-
-        return result;
-    });
-};
-
-function run_middleware(site, route) {
-
-    var i = -1;
-
-    var middleware = site.routes[route].middleware;
-
-    var run_deferred = Q.defer();
-
-    Array.prototype.unshift.apply(middleware, site.befores);
-
-    Array.prototype.push.apply(middleware, site.afters);
-
-    function next(pages) {
-
-        if (++i < middleware.length) {
-
-            middleware[i](pages, next);
-
-            return;
-        }
-
-        run_deferred.resolve(pages);
-    };
-
-    next([]);
-
-    return run_deferred.promise;
-};
-
-function make_pages(site, route, pages) {
-
-    var render_promises = [];
-
-    var make_deferred = Q.defer();
-
-    if (site.routes[route].template) {
-
-        if (!pages.length) {
-
-            pages = [{}];
-        }
-
-        pages.forEach(function (page) {
-
-            var render_deferred = Q.defer();
-
-            render_promises.push(render_deferred.promise);
-
-            site.renderer && site.renderer(site.routes[route].template, page, function (err, html) {
-
-                try
-                {
-                    var url = interpolate(site.routes[route].route, page || {});
-
-                    if (url.substr(-1) == '/') {
-
-                        url += site.index_page;
-                    }
-
-                    var file = site.site_directory + trim.left(url, '/');
-
-                    var directory;
-
-                    directory = path.dirname(file);
-
-                    mkdirp(directory, function (err) {
-
-                        if (err) render_deferred.reject(err);
-
-                        fs.writeFile(file, html, function (err, data) {
-
-                            if (err) render_deferred.reject(err);
-
-                            render_deferred.resolve();
-                        });
-                    });
-                }
-                catch(e)
-                {
-                    render_deferred.reject(e);
-                }
-            });
-        });
-    }
-
-    Q.all(render_promises).then(
-        function () {
-
-            make_deferred.resolve();
-        },
-        function(err){
-
-            make_deferred.reject(err);
-        }
-    );
-
-    return make_deferred.promise;
-};
-
-function run_route(site, route) {
-
-    var run_deferred = Q.defer();
-
-    Q.when(run_middleware(site, route)).then(
-        function(pages){
-
-            Q.when(make_pages(site, route, pages)).then(
-                function () {
-
-                    run_deferred.resolve();
-                },
-                function(err){
-
-                    run_deferred.reject(err);
-                }
-            );
-        },
-        function(err){
-
-            run_deferred.reject(err);
-        }
-    );
-
-    return run_deferred.promise;
-}
+var interpolate = require('./interpolate.js');
 
 function Site(site_directory, renderer) {
 
@@ -173,7 +11,7 @@ function Site(site_directory, renderer) {
 
     this.renderer = renderer;
 
-    this.routes = {};
+    this.routes = [];
 
     this.befores = [];
 
@@ -186,9 +24,7 @@ Site.prototype = {
 
     route: function (route) {
 
-        this.routes[route] = new Route(route, this);
-
-        return this.routes[route];
+        return new Route(this, route);
     },
 
     build: function () {
@@ -197,15 +33,112 @@ Site.prototype = {
 
         var build_deferred = Q.defer();
 
-        var route;
+        var site = this;
 
-        for(route in this.routes) {
+        this.routes.forEach(function (route){
 
-            if (this.routes.hasOwnProperty(route)) {
+            var route_deferred = Q.defer();
 
-                route_promises.push(run_route(this, route));
-            }
-        }
+            var middleware_deferred = Q.defer();
+
+            var i = -1;
+
+            var next = function(pages) {
+
+                if (++i < route.middleware.length) {
+
+                    route.middleware[i](pages, next);
+
+                    return;
+                }
+
+                middleware_deferred.resolve(pages);
+            };
+
+            Array.prototype.unshift.apply(route.middleware, site.befores);
+
+            Array.prototype.push.apply(route.middleware, site.afters);
+
+            next([]);
+
+            Q.when(middleware_deferred.promise).then(
+                function(pages){
+
+                    var render_promises = [];
+
+                    if (route.template) {
+
+                        if (!pages.length) {
+
+                            pages = [{}];
+                        }
+
+                        pages.forEach(function (page) {
+
+                            var render_deferred = Q.defer();
+
+                            render_promises.push(render_deferred.promise);
+
+                            if(site.renderer) {
+
+                                site.renderer(route.template, page, function (err, html) {
+
+                                    try
+                                    {
+                                        var url = interpolate(route.route, page || {});
+
+                                        if (url.substr(-1) == '/') {
+
+                                            url += site.index_page;
+                                        }
+
+                                        var file = site.site_directory + trim.left(url, '/');
+
+                                        var directory;
+
+                                        directory = path.dirname(file);
+
+                                        mkdirp(directory, function (err) {
+
+                                            if (err) render_deferred.reject(err);
+
+                                            fs.writeFile(file, html, function (err, data) {
+
+                                                if (err) render_deferred.reject(err);
+
+                                                render_deferred.resolve();
+                                            });
+                                        });
+                                    }
+                                    catch(e)
+                                    {
+                                        render_deferred.reject(e);
+                                    }
+                                });
+                            }
+                        });
+                    }
+
+                    Q.all(render_promises).then(
+                        function () {
+
+                            route_deferred.resolve();
+                        },
+                        function(err){
+
+                            route_deferred.reject(err);
+                        }
+                    );
+                },
+                function(err){
+
+                    route_deferred.reject(err);
+                }
+            );
+
+            route_promises.push(route_deferred.promise);
+
+        }, this);
 
         Q.all(route_promises).then(
             function () {
@@ -232,25 +165,16 @@ Site.prototype = {
     }
 };
 
-function Route(route, site) {
-
-    this.route = route;
+function Route(site, route) {
 
     this.site = site;
 
-    this.middleware = [];
+    this.route = route;
 
-    this.pages = [];
+    this.middleware = [];
 }
 
 Route.prototype = {
-
-    alias: function (alias) {
-
-        this.site.routes[alias] = this.site.routes[this.route];
-
-        return this;
-    },
 
     use: function (use) {
 
@@ -267,6 +191,8 @@ Route.prototype = {
     render: function (template) {
 
         this.template = template;
+
+        this.site.routes.push(this);
 
         return this;
     }

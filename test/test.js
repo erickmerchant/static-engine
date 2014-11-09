@@ -298,11 +298,7 @@ site.route('/{test}-{order}.html').use(push({test:'test-c'})).use(push({test:'te
 
             var route = site.route('/test.html');
 
-            assert.equal(route, site.routes['/test.html']);
-
             assert.isFunction(route.use);
-
-            assert.isFunction(route.alias);
 
             assert.isFunction(route.render);
 
@@ -312,24 +308,6 @@ site.route('/{test}-{order}.html').use(push({test:'test-c'})).use(push({test:'te
 });
 
 describe('route', function(){
-
-    describe('.alias()', function(){
-
-        it('should create an alias in site.routes and return the route', function(done) {
-
-            var site = engine(site_directory, render);
-
-            var route = site.route('/test.html');
-
-            var alias = route.alias('a-test');
-
-            assert.equal(route, alias);
-
-            assert.equal(alias, site.routes['a-test']);
-
-            done();
-        });
-    });
 
     describe('.use()', function(){
 
