@@ -29,105 +29,98 @@ Site.prototype = {
 
     build: function () {
 
-        var route_promises = [];
+        var site = this;
+
+        var route_promises = site.routes.map(function (route){
+
+            var middleware_promise = new Promise(function(resolve, reject){
+
+                var i = -1;
+
+                var next = function(pages) {
+
+                    if (++i < route.middleware.length) {
+
+                        route.middleware[i](pages, next);
+
+                        return;
+                    }
+
+                    resolve(pages);
+                };
+
+                Array.prototype.unshift.apply(route.middleware, site.befores);
+
+                Array.prototype.push.apply(route.middleware, site.afters);
+
+                next([]);
+            });
+
+            return new Promise(function(resolve, reject){
+
+                middleware_promise.then(function(pages){
+
+                    var render_promises = [];
+
+                    if (route.template) {
+
+                        if (!pages.length) {
+
+                            pages = [{}];
+                        }
+
+                        render_promises = pages.map(function (page) {
+
+                            return site._render(route, page);
+                        });
+                    }
+
+                    Promise.all(render_promises).then(resolve, reject);
+                },
+                reject);
+            });
+        });
+
+        return Promise.all(route_promises);
+    },
+
+    _render: function(route, page) {
 
         var site = this;
 
-        var build_promise = new Promise(function(build_resolve, build_reject){
+        return new Promise(function(resolve, reject){
 
-            site.routes.forEach(function (route){
+            if(site.renderer) {
 
-                var route_promise = new Promise(function(route_resolve, route_reject){
+                site.renderer(route.template, page, function (err, html) {
 
-                    var middleware_promise = new Promise(function(middleware_resolve, middleware_reject){
+                    var url = interpolate(route.route, page || {});
 
-                        var i = -1;
+                    if (url.substr(-1) == '/') {
 
-                        var next = function(pages) {
+                        url += site.index_page;
+                    }
 
-                            if (++i < route.middleware.length) {
+                    var file = site.site_directory + trim.left(url, '/');
 
-                                route.middleware[i](pages, next);
+                    var directory;
 
-                                return;
-                            }
+                    directory = path.dirname(file);
 
-                            middleware_resolve(pages);
-                        };
+                    mkdirp(directory, function (err) {
 
-                        Array.prototype.unshift.apply(route.middleware, site.befores);
+                        if (err) reject(err);
 
-                        Array.prototype.push.apply(route.middleware, site.afters);
+                        fs.writeFile(file, html, function (err, data) {
 
-                        next([]);
+                            if (err) reject(err);
+
+                            resolve();
+                        });
                     });
-
-                    middleware_promise.then(
-                        function(pages){
-
-                            var render_promises = [];
-
-                            if (route.template) {
-
-                                if (!pages.length) {
-
-                                    pages = [{}];
-                                }
-
-                                pages.forEach(function (page) {
-
-                                    var render_promise = new Promise(function(render_resolve, render_reject){
-
-                                        if(site.renderer) {
-
-                                            site.renderer(route.template, page, function (err, html) {
-
-                                                var url = interpolate(route.route, page || {});
-
-                                                if (url.substr(-1) == '/') {
-
-                                                    url += site.index_page;
-                                                }
-
-                                                var file = site.site_directory + trim.left(url, '/');
-
-                                                var directory;
-
-                                                directory = path.dirname(file);
-
-                                                mkdirp(directory, function (err) {
-
-                                                    if (err) render_reject(err);
-
-                                                    fs.writeFile(file, html, function (err, data) {
-
-                                                        if (err) render_reject(err);
-
-                                                        render_resolve();
-                                                    });
-                                                });
-                                            });
-                                        }
-                                    });
-
-                                    render_promises.push(render_promise);
-                                });
-                            }
-
-                            Promise.all(render_promises).then(route_resolve, route_reject);
-                        },
-                        route_reject
-                    );
                 });
-
-                route_promises.push(route_promise);
-
-            });
-
-            Promise.all(route_promises).then(build_resolve, build_reject);
+            }
         });
-
-        return build_promise;
     },
 
     before: function (before) {
