@@ -1,7 +1,7 @@
 var path = require('path');
 var fs = require('fs');
 var trim = require('trimmer');
-var Q = require('q');
+var Promise = require('es6-promise').Promise;
 var mkdirp = require('mkdirp');
 var interpolate = require('./interpolate.js');
 
@@ -31,127 +31,103 @@ Site.prototype = {
 
         var route_promises = [];
 
-        var build_deferred = Q.defer();
-
         var site = this;
 
-        this.routes.forEach(function (route){
+        var build_promise = new Promise(function(build_resolve, build_reject){
 
-            var route_deferred = Q.defer();
+            site.routes.forEach(function (route){
 
-            var middleware_deferred = Q.defer();
+                var route_promise = new Promise(function(route_resolve, route_reject){
 
-            var i = -1;
+                    var middleware_promise = new Promise(function(middleware_resolve, middleware_reject){
 
-            var next = function(pages) {
+                        var i = -1;
 
-                if (++i < route.middleware.length) {
+                        var next = function(pages) {
 
-                    route.middleware[i](pages, next);
+                            if (++i < route.middleware.length) {
 
-                    return;
-                }
+                                route.middleware[i](pages, next);
 
-                middleware_deferred.resolve(pages);
-            };
+                                return;
+                            }
 
-            Array.prototype.unshift.apply(route.middleware, site.befores);
+                            middleware_resolve(pages);
+                        };
 
-            Array.prototype.push.apply(route.middleware, site.afters);
+                        Array.prototype.unshift.apply(route.middleware, site.befores);
 
-            next([]);
+                        Array.prototype.push.apply(route.middleware, site.afters);
 
-            Q.when(middleware_deferred.promise).then(
-                function(pages){
+                        next([]);
+                    });
 
-                    var render_promises = [];
+                    middleware_promise.then(
+                        function(pages){
 
-                    if (route.template) {
+                            var render_promises = [];
 
-                        if (!pages.length) {
+                            if (route.template) {
 
-                            pages = [{}];
-                        }
+                                if (!pages.length) {
 
-                        pages.forEach(function (page) {
+                                    pages = [{}];
+                                }
 
-                            var render_deferred = Q.defer();
+                                pages.forEach(function (page) {
 
-                            render_promises.push(render_deferred.promise);
+                                    var render_promise = new Promise(function(render_resolve, render_reject){
 
-                            if(site.renderer) {
+                                        if(site.renderer) {
 
-                                site.renderer(route.template, page, function (err, html) {
+                                            site.renderer(route.template, page, function (err, html) {
 
-                                    try
-                                    {
-                                        var url = interpolate(route.route, page || {});
+                                                var url = interpolate(route.route, page || {});
 
-                                        if (url.substr(-1) == '/') {
+                                                if (url.substr(-1) == '/') {
 
-                                            url += site.index_page;
-                                        }
+                                                    url += site.index_page;
+                                                }
 
-                                        var file = site.site_directory + trim.left(url, '/');
+                                                var file = site.site_directory + trim.left(url, '/');
 
-                                        var directory;
+                                                var directory;
 
-                                        directory = path.dirname(file);
+                                                directory = path.dirname(file);
 
-                                        mkdirp(directory, function (err) {
+                                                mkdirp(directory, function (err) {
 
-                                            if (err) render_deferred.reject(err);
+                                                    if (err) render_reject(err);
 
-                                            fs.writeFile(file, html, function (err, data) {
+                                                    fs.writeFile(file, html, function (err, data) {
 
-                                                if (err) render_deferred.reject(err);
+                                                        if (err) render_reject(err);
 
-                                                render_deferred.resolve();
+                                                        render_resolve();
+                                                    });
+                                                });
                                             });
-                                        });
-                                    }
-                                    catch(e)
-                                    {
-                                        render_deferred.reject(e);
-                                    }
+                                        }
+                                    });
+
+                                    render_promises.push(render_promise);
                                 });
                             }
-                        });
-                    }
 
-                    Q.all(render_promises).then(
-                        function () {
-
-                            route_deferred.resolve();
+                            Promise.all(render_promises).then(route_resolve, route_reject);
                         },
-                        function(err){
-
-                            route_deferred.reject(err);
-                        }
+                        route_reject
                     );
-                },
-                function(err){
+                });
 
-                    route_deferred.reject(err);
-                }
-            );
+                route_promises.push(route_promise);
 
-            route_promises.push(route_deferred.promise);
+            });
 
-        }, this);
+            Promise.all(route_promises).then(build_resolve, build_reject);
+        });
 
-        Q.all(route_promises).then(
-            function () {
-
-                build_deferred.resolve();
-            },
-            function(err) {
-
-                build_deferred.reject(err);
-            }
-        );
-
-        return build_deferred.promise;
+        return build_promise;
     },
 
     before: function (before) {

@@ -2,7 +2,6 @@ var assert = require('chai').assert;
 var engine = require('../index.js');
 var mock = require('mock-fs');
 var fs = require('fs');
-var Q = require('q');
 var site_directory = './test/build/';
 
 function push(literal) {
@@ -57,7 +56,7 @@ describe('site', function () {
                 next(pages);
             });
 
-            Q.when(site.build()).then(
+            site.build().then(
                 function(){
 
                     fs.readFile(site_directory+'test.html', function (err, data) {
@@ -97,7 +96,7 @@ describe('site', function () {
                 next(pages);
             });
 
-            Q.when(site.build()).then(
+            site.build().then(
                 function(){
 
                     fs.readFile(site_directory+'test.html', function (err, data) {
@@ -127,7 +126,7 @@ describe('site', function () {
 
             site.route('/test.html').render('test.html');
 
-            Q.when(site.build()).then(
+            site.build().then(
                 function(){
 
                     fs.readdir(site_directory, function (err, files) {
@@ -156,7 +155,7 @@ describe('site', function () {
 
             site.route('/{test}.html').use(push({test: 'test-a'})).use(push({test: 'test-b'})).render('test.html');
 
-            Q.when(site.build()).then(
+            site.build().then(
                 function(){
 
                     fs.readdir(site_directory, function (err, files) {
@@ -208,7 +207,7 @@ site.route('/{test}-{order}.html').use(push({test:'test-c'})).use(push({test:'te
 
             site.after(push({test:'test-f'}));
 
-            Q.when(site.build()).then(
+            site.build().then(
                 function(){
 
                     fs.readdir(site_directory, function (err, files) {
@@ -245,7 +244,7 @@ site.route('/{test}-{order}.html').use(push({test:'test-c'})).use(push({test:'te
 
             site.route('/{test}.html').render('test.html');
 
-            Q.when(site.build()).then(
+            site.build().then(
                 function(){
 
                     assert.notOk(true);
@@ -258,8 +257,7 @@ site.route('/{test}-{order}.html').use(push({test:'test-c'})).use(push({test:'te
 
                     done();
                 }
-            )
-            .done();
+            );
         });
 
 
@@ -269,7 +267,7 @@ site.route('/{test}-{order}.html').use(push({test:'test-c'})).use(push({test:'te
 
             site.route('/test.html').use(push({test: 'test-a'})).render('test.html');
 
-            Q.when(site.build()).then(
+            site.build().then(
                 function(){
 
                     fs.readFile(site_directory+'test.html', function (err, data) {
