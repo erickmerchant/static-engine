@@ -33,55 +33,56 @@ Site.prototype = {
 
         var route_promises = site.routes.map(function (route){
 
-            var middleware_promise = new Promise(function(resolve, reject){
+            return site._middleware(route).then(function(pages){
 
-                var i = -1;
+                var render_promises = [];
 
-                var next = function(pages) {
+                if (route.template) {
 
-                    if (++i < route.middleware.length) {
+                    if (!pages.length) {
 
-                        route.middleware[i](pages, next);
-
-                        return;
+                        pages = [{}];
                     }
 
-                    resolve(pages);
-                };
+                    render_promises = pages.map(function (page) {
 
-                Array.prototype.unshift.apply(route.middleware, site.befores);
+                        return site._render(route, page);
+                    });
+                }
 
-                Array.prototype.push.apply(route.middleware, site.afters);
-
-                next([]);
-            });
-
-            return new Promise(function(resolve, reject){
-
-                middleware_promise.then(function(pages){
-
-                    var render_promises = [];
-
-                    if (route.template) {
-
-                        if (!pages.length) {
-
-                            pages = [{}];
-                        }
-
-                        render_promises = pages.map(function (page) {
-
-                            return site._render(route, page);
-                        });
-                    }
-
-                    Promise.all(render_promises).then(resolve, reject);
-                },
-                reject);
+                return Promise.all(render_promises);
             });
         });
 
         return Promise.all(route_promises);
+    },
+
+    _middleware: function(route) {
+
+        var site = this;
+
+        return new Promise(function(resolve, reject){
+
+            var i = -1;
+
+            var next = function(pages) {
+
+                if (++i < route.middleware.length) {
+
+                    route.middleware[i](pages, next);
+
+                    return;
+                }
+
+                resolve(pages);
+            };
+
+            Array.prototype.unshift.apply(route.middleware, site.befores);
+
+            Array.prototype.push.apply(route.middleware, site.afters);
+
+            next([]);
+        });
     },
 
     _render: function(route, page) {
