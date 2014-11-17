@@ -43,7 +43,7 @@ describe('site', function () {
 
     describe('.before()', function(){
 
-        it('should add middleware that\'s called before', function (done) {
+        it('should add plugin that\'s called before', function (done) {
 
             var site = engine(site_directory, render);
 
@@ -80,7 +80,7 @@ describe('site', function () {
 
     describe('.after()', function(){
 
-        it('should add middleware that\'s called after', function (done) {
+        it('should add plugin that\'s called after', function (done) {
 
             var site = engine(site_directory, render);
 
@@ -180,7 +180,7 @@ describe('site', function () {
             );
         });
 
-        it('middleware should be called in the correct order', function (done) {
+        it('plugin should be called in the correct order', function (done) {
 
             var site = engine(site_directory, render);
 

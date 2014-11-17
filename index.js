@@ -33,7 +33,7 @@ Site.prototype = {
 
         var route_promises = site.routes.map(function (route){
 
-            return site._middleware(route).then(function(pages){
+            return site._run(route).then(function(pages){
 
                 var render_promises = [];
 
@@ -57,7 +57,7 @@ Site.prototype = {
         return Promise.all(route_promises);
     },
 
-    _middleware: function(route) {
+    _run: function(route) {
 
         var site = this;
 
@@ -67,9 +67,9 @@ Site.prototype = {
 
             var next = function(pages) {
 
-                if (++i < route.middleware.length) {
+                if (++i < route.plugins.length) {
 
-                    route.middleware[i](pages, next);
+                    route.plugins[i](pages, next);
 
                     return;
                 }
@@ -77,9 +77,9 @@ Site.prototype = {
                 resolve(pages);
             };
 
-            Array.prototype.unshift.apply(route.middleware, site.befores);
+            Array.prototype.unshift.apply(route.plugins, site.befores);
 
-            Array.prototype.push.apply(route.middleware, site.afters);
+            Array.prototype.push.apply(route.plugins, site.afters);
 
             next([]);
         });
@@ -141,7 +141,7 @@ function Route(site, route) {
 
     this.route = route;
 
-    this.middleware = [];
+    this.plugins = [];
 }
 
 Route.prototype = {
@@ -150,7 +150,7 @@ Route.prototype = {
 
         if (typeof use == 'function') {
 
-            this.middleware.push(use);
+            this.plugins.push(use);
 
             return this;
         }
