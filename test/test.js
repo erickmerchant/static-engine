@@ -47,7 +47,7 @@ describe('site', function () {
 
             var site = engine(site_directory, render);
 
-            site.route('/test.html').render('test.html');
+            site.route('test.html').render('test.html');
 
             site.before(function(pages, next){
 
@@ -84,7 +84,7 @@ describe('site', function () {
 
             var site = engine(site_directory, render);
 
-            site.route('/test.html').use(push({test:'test-a'})).render('test.html');
+            site.route('test.html').use(push({test:'test-a'})).render('test.html');
 
             site.after(function(pages, next){
 
@@ -124,7 +124,7 @@ describe('site', function () {
 
             var site = engine(site_directory, render);
 
-            site.route('/test.html').render('test.html');
+            site.route('test.html').render('test.html');
 
             site.build().then(
                 function(){
@@ -153,7 +153,7 @@ describe('site', function () {
 
             var site = engine(site_directory, render);
 
-            site.route('/{test}.html').use(push({test: 'test-a'})).use(push({test: 'test-b'})).render('test.html');
+            site.route('{test}.html').use(push({test: 'test-a'})).use(push({test: 'test-b'})).render('test.html');
 
             site.build().then(
                 function(){
@@ -197,7 +197,7 @@ describe('site', function () {
                     next(pages);
                 };
             };
-site.route('/{test}-{order}.html').use(push({test:'test-c'})).use(push({test:'test-d'})).render('test.html');
+site.route('{test}-{order}.html').use(push({test:'test-c'})).use(push({test:'test-d'})).render('test.html');
 
             site.before(push({test:'test-a'}));
 
@@ -242,7 +242,7 @@ site.route('/{test}-{order}.html').use(push({test:'test-c'})).use(push({test:'te
 
             var site = engine(site_directory, render);
 
-            site.route('/{test}.html').render('test.html');
+            site.route('{test}.html').render('test.html');
 
             site.build().then(
                 function(){
@@ -265,7 +265,7 @@ site.route('/{test}-{order}.html').use(push({test:'test-c'})).use(push({test:'te
 
             var site = engine(site_directory, render);
 
-            site.route('/test.html').use(push({test: 'test-a'})).render('test.html');
+            site.route('test.html').use(push({test: 'test-a'})).render('test.html');
 
             site.build().then(
                 function(){
@@ -294,7 +294,7 @@ site.route('/{test}-{order}.html').use(push({test:'test-c'})).use(push({test:'te
 
             var site = engine(site_directory, render);
 
-            var route = site.route('/test.html');
+            var route = site.route('test.html');
 
             assert.isFunction(route.use);
 
@@ -313,7 +313,7 @@ describe('route', function(){
 
             var site = engine(site_directory, render);
 
-            var route = site.route('/test.html');
+            var route = site.route('test.html');
 
             try
             {
@@ -333,7 +333,7 @@ describe('route', function(){
 
             var site = engine(site_directory, render);
 
-            var route = site.route('/test.html');
+            var route = site.route('test.html');
 
             var result = route.use(function(){});
 
@@ -349,7 +349,7 @@ describe('route', function(){
 
             var site = engine(site_directory, render);
 
-            var route = site.route('/test.html');
+            var route = site.route('test.html');
 
             var result = route.render('test.html');
 

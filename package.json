@@ -18,8 +18,7 @@
   "homepage": "https://github.com/erickmerchant/static-engine",
   "dependencies": {
     "es6-promise": "^2.0.0",
-    "mkdirp": "^0.5.0",
-    "trimmer": "^1.0.0"
+    "mkdirp": "^0.5.0"
   },
   "devDependencies": {
     "chai": "^1.9.2",

@@ -1,6 +1,5 @@
 var path = require('path');
 var fs = require('fs');
-var trim = require('trimmer');
 var Promise = require('es6-promise').Promise;
 var mkdirp = require('mkdirp');
 var interpolate = require('./interpolate.js');
@@ -16,8 +15,6 @@ function Site(site_directory, renderer) {
     this.befores = [];
 
     this.afters = [];
-
-    this.index_page = 'index.html';
 }
 
 Site.prototype = {
@@ -97,12 +94,7 @@ Site.prototype = {
 
                     var url = interpolate(route.route, page || {});
 
-                    if (url.substr(-1) == '/') {
-
-                        url += site.index_page;
-                    }
-
-                    var file = site.site_directory + trim.left(url, '/');
+                    var file = site.site_directory + url;
 
                     var directory;
 
