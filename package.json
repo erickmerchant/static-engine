@@ -1,6 +1,6 @@
 {
   "name": "static-engine",
-  "version": "4.0.0",
+  "version": "4.0.1",
   "description": "A package for building static web content.",
   "main": "index.js",
   "repository": "erickmerchant/static-engine",
