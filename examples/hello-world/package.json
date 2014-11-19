@@ -1,7 +1,0 @@
-{
-  "name": "hello-world",
-  "dependencies": {
-    "nunjucks": "^1.0.5",
-    "static-engine": "^1.0.0"
-  }
-}
