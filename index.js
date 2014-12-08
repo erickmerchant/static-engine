@@ -1,27 +1,13 @@
 var Promise = require('es6-promise').Promise;
+var series = require('static-engine-series');
 
 module.exports = function (formulas) {
 
     var promises = formulas.map(function(plugins) {
 
-        var i = -1;
+        plugins = series(plugins);
 
-        return new Promise(function(resolve, reject){
-
-            var next = function(pages) {
-
-                if (++i < plugins.length) {
-
-                    plugins[i](pages).then(next);
-
-                    return;
-                }
-
-                resolve(pages);
-            };
-
-            next([]);
-        });
+        return plugins([]);
     });
 
     return Promise.all(promises);
