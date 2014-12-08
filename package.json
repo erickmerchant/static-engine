@@ -1,6 +1,6 @@
 {
   "name": "static-engine",
-  "version": "5.0.0",
+  "version": "5.1.0",
   "description": "A package for building static web content.",
   "main": "index.js",
   "repository": "erickmerchant/static-engine",
@@ -24,6 +24,6 @@
     "mocha": "^2.0.0"
   },
   "peerDependencies": {
-      "static-engine-series": "^1.0.0"
+    "static-engine-series": "^1.0.0"
   }
 }
