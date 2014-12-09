@@ -22,8 +22,5 @@
   "devDependencies": {
     "chai": "^1.9.2",
     "mocha": "^2.0.0"
-  },
-  "peerDependencies": {
-    "static-engine-series": "^1.0.0"
   }
 }
