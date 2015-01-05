@@ -1,5 +1,5 @@
 var Promise = require('es6-promise').Promise;
-var compose = require('./compose');
+var compose = require('static-compose');
 
 module.exports = function (formulas) {
 
