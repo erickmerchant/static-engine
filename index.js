@@ -3,15 +3,20 @@ var compose = require('static-compose');
 
 module.exports = function (formulas) {
 
-    if(!Array.isArray(formulas) || arguments.length > 1) {
+    if(!Array.isArray(formulas)) {
+
+        formulas = [ [].slice.call(arguments) ];
+    }
+    else if(!Array.isArray(formulas[0])) {
 
         formulas = [].slice.call(arguments);
     }
 
-    var promises = formulas.map(function(plugins) {
+    return Promise.all(
 
-        return compose(plugins)([]);
-    });
+    	formulas.map(function(plugins) {
 
-    return Promise.all(promises);
+	        return compose(plugins)([]);
+	    })
+    );
 };
