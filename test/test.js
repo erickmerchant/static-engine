@@ -1,102 +1,131 @@
 var assert = require('chai').assert;
 var engine = require('../index.js');
-var Promise = require('es6-promise').Promise;
 
 describe('engine', function(){
 
-    it('accept an array of arrays of plugins and return a promise', function(done) {
+    it('should accept multiple arguments, each a plugin', function(done) {
 
-        var promise = engine([
-            [
-                function(pages){
-                    pages.push('a');
-                    return Promise.resolve(pages);
-                },
-                function(pages){
-                    pages.push('b');
-                    return Promise.resolve(pages);
-                },
-                function(pages){
-                    pages.push('c');
-                    return Promise.resolve(pages);
-                }
-            ],
-            [
-                function(pages){
-                    pages.push('d');
-                    return Promise.resolve(pages);
-                },
-                function(pages){
-                    pages.push('e');
-                    return Promise.resolve(pages);
-                },
-                function(pages){
-                    pages.push('f');
-                    return Promise.resolve(pages);
-                }
-            ],
-            [
-                function(pages){
-                    pages.push('g');
-                    return Promise.resolve(pages);
-                },
-                function(pages){
-                    pages.push('h');
-                    return Promise.resolve(pages);
-                },
-                function(pages){
-                    pages.push('i');
-                    return Promise.resolve(pages);
-                }
-            ]
-        ]);
+        var promise = engine(
+            function(pages, resolve){
+                pages.push('a');
+                resolve(null, pages);
+            },
+            function(pages, resolve){
+                pages.push('b');
+                resolve(null, pages);
+            },
+            function(pages, resolve){
+                pages.push('c');
+                resolve(null, pages);
+            }
+        );
 
-        promise.then(function(){ done(); });
+        promise.then(function(pages){
+
+            assert.deepEqual(pages, [['a','b','c']]);
+
+            done();
+        });
     });
 
-    it('plugins should have the desired effect', function(done) {
+    it('should accept multiple arguments, each an array of plugins', function(done) {
+
+        var promise = engine(
+            [
+                function(pages, resolve){
+                    pages.push('a');
+                    resolve(null, pages);
+                },
+                function(pages, resolve){
+                    pages.push('b');
+                    resolve(null, pages);
+                },
+                function(pages, resolve){
+                    pages.push('c');
+                    resolve(null, pages);
+                }
+            ],
+            [
+                function(pages, resolve){
+                    pages.push('d');
+                    resolve(null, pages);
+                },
+                function(pages, resolve){
+                    pages.push('e');
+                    resolve(null, pages);
+                },
+                function(pages, resolve){
+                    pages.push('f');
+                    resolve(null, pages);
+                }
+            ],
+            [
+                function(pages, resolve){
+                    pages.push('g');
+                    resolve(null, pages);
+                },
+                function(pages, resolve){
+                    pages.push('h');
+                    resolve(null, pages);
+                },
+                function(pages, resolve){
+                    pages.push('i');
+                    resolve(null, pages);
+                }
+            ]
+        );
+
+        promise.then(function(pages){
+
+            assert.deepEqual(pages, [['a','b','c'],['d','e','f'],['g','h','i']]);
+
+            done();
+        });
+    });
+
+    it('should accept one argument, an array of arrays, each containing plugins', function(done) {
 
         var promise = engine([
             [
-                function(pages){
+                function(pages, resolve){
                     pages.push('a');
-                    return Promise.resolve(pages);
+                    resolve(null, pages);
                 },
-                function(pages){
+                function(pages, resolve){
                     pages.push('b');
-                    return Promise.resolve(pages);
+                    resolve(null, pages);
                 },
-                function(pages){
+                function(pages, resolve){
                     pages.push('c');
-                    return Promise.resolve(pages);
+                    resolve(null, pages);
                 }
             ],
             [
-                function(pages){
+                function(pages, resolve){
                     pages.push('d');
-                    return Promise.resolve(pages);
+                    resolve(null, pages);
                 },
-                function(pages){
+                function(pages, resolve){
                     pages.push('e');
-                    return Promise.resolve(pages);
+                    resolve(null, pages);
                 },
-                function(pages){
+                function(pages, resolve){
                     pages.push('f');
-                    return Promise.resolve(pages);
+                    resolve(null, pages);
                 }
             ],
             [
-                function(pages){
+                function(pages, resolve){
                     pages.push('g');
-                    return Promise.resolve(pages);
+                    resolve(null, pages);
                 },
-                function(pages){
+                function(pages, resolve){
                     pages.push('h');
-                    return Promise.resolve(pages);
+                    resolve(null, pages);
                 },
-                function(pages){
+                function(pages, resolve){
                     pages.push('i');
-                    return Promise.resolve(pages);
+                    resolve(null, pages);
                 }
             ]
         ]);
