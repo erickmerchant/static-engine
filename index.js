@@ -2,13 +2,11 @@ var compose = require('static-compose');
 
 module.exports = function (formulas) {
 
-    if(!Array.isArray(formulas)) {
+    var formulas = [].slice.call(arguments);
 
-        formulas = [ [].slice.call(arguments) ];
-    }
-    else if(!Array.isArray(formulas[0])) {
+    if(!Array.isArray(formulas[0])) {
 
-        formulas = [].slice.call(arguments);
+        formulas = [ formulas ];
     }
 
     return Promise.all(
