@@ -1,17 +1,17 @@
 var compose = require('static-compose');
 
-module.exports = function (formulas) {
+module.exports = function () {
 
-    var formulas = [].slice.call(arguments);
+    var collections = [].slice.call(arguments);
 
-    if(!Array.isArray(formulas[0])) {
+    if(!Array.isArray(collections[0])) {
 
-        formulas = [ formulas ];
+        collections = [ collections ];
     }
 
     return Promise.all(
 
-    	formulas.map(function(plugins) {
+    	collections.map(function(plugins) {
 
 	        return compose(plugins)([]);
 	    })
