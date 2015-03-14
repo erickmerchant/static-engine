@@ -5,7 +5,7 @@ describe('engine', function(){
 
     it('should accept multiple arguments, each a plugin', function(done) {
 
-        var promise = engine(
+        engine(
             function(pages, resolve){
                 pages.push('a');
                 resolve(null, pages);
@@ -18,9 +18,8 @@ describe('engine', function(){
                 pages.push('c');
                 resolve(null, pages);
             }
-        );
-
-        promise.then(function(pages){
+        )
+        .then(function(pages){
 
             assert.deepEqual(pages, [['a','b','c']]);
 
@@ -30,7 +29,7 @@ describe('engine', function(){
 
     it('should accept multiple arguments, each an array of plugins', function(done) {
 
-        var promise = engine(
+        engine(
             [
                 function(pages, resolve){
                     pages.push('a');
@@ -73,9 +72,8 @@ describe('engine', function(){
                     resolve(null, pages);
                 }
             ]
-        );
-
-        promise.then(function(pages){
+        )
+        .then(function(pages){
 
             assert.deepEqual(pages, [['a','b','c'],['d','e','f'],['g','h','i']]);
 
