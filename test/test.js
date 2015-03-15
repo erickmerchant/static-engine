@@ -24,7 +24,8 @@ describe('engine', function(){
             assert.deepEqual(pages, [['a','b','c']]);
 
             done();
-        });
+        })
+        .catch(done);
     });
 
     it('should accept multiple arguments, each an array of plugins', function(done) {
@@ -78,6 +79,7 @@ describe('engine', function(){
             assert.deepEqual(pages, [['a','b','c'],['d','e','f'],['g','h','i']]);
 
             done();
-        });
+        })
+        .catch(done);
     });
 });
