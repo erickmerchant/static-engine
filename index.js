@@ -35,7 +35,7 @@ module.exports = function () {
 
                         result = plugins[i](data, done);
 
-                        if(typeof result.then == 'function') {
+                        if(result && typeof result.then == 'function') {
 
                             result.then(function(data){
 
