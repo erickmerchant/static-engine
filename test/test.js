@@ -1,4 +1,4 @@
-var assert = require('chai').assert;
+var assert = require('assert');
 var engine = require('../index.js');
 
 describe('engine', function(){
