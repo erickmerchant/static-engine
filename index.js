@@ -4,54 +4,48 @@ module.exports = function () {
 
     var collections = [].slice.call(arguments);
 
-    if(!Array.isArray(collections[0])) {
+	collections = collections.map(function(plugins) {
 
-        collections = [ collections ];
-    }
+        var i = -1;
 
-    return Promise.all(
+        return new Promise(function(resolve, reject) {
 
-    	collections.map(function(plugins) {
+            var next = function(data) {
 
-            var i = -1;
+                var result, done;
 
-            return new Promise(function(resolve, reject){
+                if (++i < plugins.length) {
 
-                var next = function(data) {
+                    done = once(function(err, data){
 
-                    var result, done;
-
-                    if (++i < plugins.length) {
-
-                        done = once(function(err, data){
-
-                            if(err) {
-                                reject(err);
-                            }
-                            else {
-                                next(data);
-                            }
-                        });
-
-                        result = plugins[i](data, done);
-
-                        if(result && typeof result.then == 'function') {
-
-                            result.then(function(data){
-
-                                done(null, data);
-
-                            }, done);
+                        if(err) {
+                            reject(err);
                         }
-                    }
-                    else {
+                        else {
+                            next(data);
+                        }
+                    });
 
-                        resolve(data);
-                    }
-                };
+                    result = plugins[i](data, done);
 
-                next([]);
-            });
-	    })
-    );
+                    if(result && typeof result.then == 'function') {
+
+                        result.then(function(data){
+
+                            done(null, data);
+
+                        }, done);
+                    }
+                }
+                else {
+
+                    resolve(data);
+                }
+            };
+
+            next([]);
+        });
+    });
+
+    return Promise.all(collections);
 };

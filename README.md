@@ -4,11 +4,9 @@
 
 It started out as a really abstract static site generator. While most static site generators are focused around the idea of a file, static-engine doesn't assume where the data is coming from or even what you want to do with it. Everything is done with plugins that take in an array of objects, and return an array of objects.
 
-Call static-engine with one or more arrays of plugins. Each array of plugins is composed such that each is called with the result from the previous or in the case of the first one, an empty array.
+Call static-engine with one or more arrays of plugins. Each array of plugins is composed such that each plugin is called with the result from the previous or in the case of the first one, an empty array.
 
-You can also call it with multiple plugins. If called in this way they collectively are treated as a single array of plugins.
-
-It returns a Promise.
+Each array of plugins passed to it creates a promise that is resolved when all plugins have finished. Those promises in turn result in a larger promise that is only resolved when all plugins from every array is finished. Static-engine returns that promise.
 
 ```javascript
 // examples of use
@@ -17,19 +15,8 @@ var engine = require('static-engine');
 var pluginA = require('plugin-a');
 var pluginB = require('plugin-b');
 var pluginC = require('plugin-c');
-var pluginD = require('plugin-d');
 
-engine([pluginA, pluginB], [pluginC, pluginD])
-    .then(function(data){
-
-        console.log(data);
-    })
-    .catch(function(err){
-
-        console.error(err);
-    });
-
-engine(pluginA, pluginB)
+engine([pluginA, pluginB], [pluginC])
     .then(function(data){
 
         console.log(data);
@@ -43,7 +30,7 @@ engine(pluginA, pluginB)
 
 ## plugins
 
-Plugins are called with the data returned from the plugin before it (or the initial data, an empty array) and a done callback. The callback is optional because plugins may also return a Promise.
+Plugins are called with the data returned from the plugin before it (or for the initial one, an empty array) and a done callback. Using the callback is optional; plugins may also return a Promise.
 
 ### examples
 

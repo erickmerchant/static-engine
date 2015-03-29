@@ -3,9 +3,8 @@ var engine = require('../index.js');
 
 describe('engine', function(){
 
-    it('should accept multiple arguments, each a plugin', function(done) {
-
-        engine(
+    var promise = engine(
+        [
             function(pages, resolve){
                 pages.push('a');
                 resolve(null, pages);
@@ -18,65 +17,31 @@ describe('engine', function(){
                 pages.push('c');
                 resolve(null, pages);
             }
-        )
-        .then(function(pages){
+        ],
+        [
+            function(pages, resolve){
+                pages.push('d');
+                resolve(null, pages);
+            },
+            function(pages, resolve){
+                pages.push('e');
+                resolve(null, pages);
+            }
+        ]
+    );
 
-            assert.deepEqual(pages, [['a','b','c']]);
+    it('should return a promise', function(done) {
 
-            done();
-        })
-        .catch(done);
+        assert.ok(promise instanceof Promise);
+
+        done();
     });
 
-    it('should accept multiple arguments, each an array of plugins', function(done) {
+    it('should have expected results', function(done) {
 
-        engine(
-            [
-                function(pages, resolve){
-                    pages.push('a');
-                    resolve(null, pages);
-                },
-                function(pages, resolve){
-                    pages.push('b');
-                    resolve(null, pages);
-                },
-                function(pages, resolve){
-                    pages.push('c');
-                    resolve(null, pages);
-                }
-            ],
-            [
-                function(pages, resolve){
-                    pages.push('d');
-                    resolve(null, pages);
-                },
-                function(pages, resolve){
-                    pages.push('e');
-                    resolve(null, pages);
-                },
-                function(pages, resolve){
-                    pages.push('f');
-                    resolve(null, pages);
-                }
-            ],
-            [
-                function(pages, resolve){
-                    pages.push('g');
-                    resolve(null, pages);
-                },
-                function(pages, resolve){
-                    pages.push('h');
-                    resolve(null, pages);
-                },
-                function(pages, resolve){
-                    pages.push('i');
-                    resolve(null, pages);
-                }
-            ]
-        )
-        .then(function(pages){
+        promise.then(function(pages){
 
-            assert.deepEqual(pages, [['a','b','c'],['d','e','f'],['g','h','i']]);
+            assert.deepEqual(pages, [['a','b','c'],['d','e']]);
 
             done();
         })
