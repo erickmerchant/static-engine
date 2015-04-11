@@ -1,51 +1,40 @@
-var once = require('once');
+var once = require('once')
 
 module.exports = function () {
+  var collections = [].slice.call(arguments)
 
-    var collections = [].slice.call(arguments);
+  collections = collections.map(function (plugins) {
+    var i = -1
 
-	collections = collections.map(function(plugins) {
+    return new Promise(function (resolve, reject) {
+      var next = function (data) {
+        var result, done
 
-        var i = -1;
+        if (++i < plugins.length) {
+          done = once(function (err, data) {
+            if (err) {
+              reject(err)
+            } else {
+              next(data)
+            }
+          })
 
-        return new Promise(function(resolve, reject) {
+          result = plugins[i](data, done)
 
-            var next = function(data) {
+          if (result && typeof result.then === 'function') {
+            result.then(function (data) {
+              done(null, data)
 
-                var result, done;
+            }, done)
+          }
+        } else {
+          resolve(data)
+        }
+      }
 
-                if (++i < plugins.length) {
+      next([])
+    })
+  })
 
-                    done = once(function(err, data){
-
-                        if(err) {
-                            reject(err);
-                        }
-                        else {
-                            next(data);
-                        }
-                    });
-
-                    result = plugins[i](data, done);
-
-                    if(result && typeof result.then == 'function') {
-
-                        result.then(function(data){
-
-                            done(null, data);
-
-                        }, done);
-                    }
-                }
-                else {
-
-                    resolve(data);
-                }
-            };
-
-            next([]);
-        });
-    });
-
-    return Promise.all(collections);
-};
+  return Promise.all(collections)
+}

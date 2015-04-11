@@ -13,7 +13,7 @@
     "url": "https://github.com/erickmerchant/static-engine/issues"
   },
   "scripts": {
-    "test": "mocha"
+    "test": "standard && mocha"
   },
   "homepage": "https://github.com/erickmerchant/static-engine",
   "dependencies": {
