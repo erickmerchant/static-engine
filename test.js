@@ -1,5 +1,5 @@
 var assert = require('assert')
-var engine = require('../index.js')
+var engine = require('./index.js')
 var describe = require('mocha').describe
 var it = require('mocha').it
 
