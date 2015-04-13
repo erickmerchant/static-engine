@@ -1,6 +1,6 @@
 # static-engine
 
-[![Dependency Status](https://david-dm.org/erickmerchant/static-engine.svg?style=flat-square)](https://david-dm.org/erickmerchant/static-engine) [![devDependency Status](https://david-dm.org/erickmerchant/static-engine/dev-status.svg?style=flat-square)](https://david-dm.org/erickmerchant/static-engine#info=devDependencies)[![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg?style=flat)](https://github.com/feross/standard)
+[![Dependency Status](https://david-dm.org/erickmerchant/static-engine.svg?style=flat-square)](https://david-dm.org/erickmerchant/static-engine) [![devDependency Status](https://david-dm.org/erickmerchant/static-engine/dev-status.svg?style=flat-square)](https://david-dm.org/erickmerchant/static-engine#info=devDependencies) [![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg?style=flat)](https://github.com/feross/standard)
 
 It started out as a really abstract static site generator. While most static site generators are focused around the idea of a file, static-engine doesn't assume where the data is coming from or even what you want to do with it. Everything is done with plugins that take in an array of objects, and return an array of objects.
 
