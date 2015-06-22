@@ -1,4 +1,5 @@
 var once = require('once')
+var dezalgo = require('dezalgo')
 
 module.exports = function () {
   var collections = [].slice.call(arguments)
@@ -11,13 +12,13 @@ module.exports = function () {
         var result, done
 
         if (++i < plugins.length) {
-          done = once(function (err, data) {
+          done = once(dezalgo(function (err, data) {
             if (err) {
               reject(err)
             } else {
               next(data)
             }
-          })
+          }))
 
           result = plugins[i](data, done)
 
