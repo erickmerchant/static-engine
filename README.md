@@ -10,22 +10,18 @@ Each array of plugins passed to it creates a promise that is resolved when all p
 
 ```javascript
 // examples of use
-
-var engine = require('static-engine');
-var pluginA = require('plugin-a');
-var pluginB = require('plugin-b');
-var pluginC = require('plugin-c');
+var engine = require('static-engine')
+var pluginA = require('plugin-a')
+var pluginB = require('plugin-b')
+var pluginC = require('plugin-c')
 
 engine([pluginA, pluginB], [pluginC])
-    .then(function(data){
-
-        console.log(data);
-    })
-    .catch(function(err){
-
-        console.error(err);
-    });
-
+  .then(function (data) {
+    console.log(data)
+  })
+  .catch(function (err) {
+    console.error(err)
+  })
 ```
 
 ## plugins
@@ -38,27 +34,22 @@ In these examples each plugin is simply pushing a new object to the array.
 
 ```javascript
 // a plugin that uses the callback
+module.exports = function (data, done) {
+  data.push({})
 
-module.exports = function(data, done) {
-
-    data.push({});
-
-    done(null, data);
-};
+  done(null, data)
+}
 ```
 
 ```javascript
 // a plugin that returns a Promise
+module.exports = function (data) {
+  return new Promise(function (reject, resolve) {
+    data.push({})
 
-module.exports = function(data) {
-
-    return new Promise(function(reject, resolve){
-
-        data.push({});
-
-        resolve(data);
-    });
-};
+    resolve(data)
+  })
+}
 ```
 
 Plugins are just functions obviously. They don't have to be modules.
