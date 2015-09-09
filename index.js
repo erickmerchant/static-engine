@@ -25,7 +25,6 @@ module.exports = function () {
           if (result && typeof result.then === 'function') {
             result.then(function (data) {
               done(null, data)
-
             }, done)
           }
         } else {
