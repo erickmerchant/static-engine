@@ -2,7 +2,12 @@ var once = require('once')
 var dezalgo = require('dezalgo')
 
 module.exports = function () {
-  var collections = [].slice.call(arguments)
+  var collections = new Array(arguments.length)
+  var i
+
+  for (i = 0; i < collections.length; ++i) {
+    collections[i] = arguments[i]
+  }
 
   collections = collections.map(function (plugins) {
     var i = -1
