@@ -1,5 +1,5 @@
 var engine = require('./index.js')
-var tap = require('tap')
+var test = require('tape')
 
 var promise = engine(
   [
@@ -28,13 +28,13 @@ var promise = engine(
   ]
 )
 
-tap.test('should return a promise', function (t) {
+test('should return a promise', function (t) {
   t.ok(promise instanceof Promise)
 
   t.end()
 })
 
-tap.test('should have expected results', function (t) {
+test('should have expected results', function (t) {
   promise.then(function (pages) {
     t.deepEqual(pages, [['a', 'b'], ['c', 'd']])
 
@@ -55,7 +55,7 @@ var failingFromCallback = engine(
   ]
 )
 
-tap.test('should handle errors from callbacks', function (t) {
+test('should handle errors from callbacks', function (t) {
   failingFromCallback.catch(function (err) {
     t.equal('An error occurred', err.message)
 
@@ -79,7 +79,7 @@ var failingFromPromise = engine(
   ]
 )
 
-tap.test('should handle errors from promises', function (t) {
+test('should handle errors from promises', function (t) {
   failingFromPromise.catch(function (err) {
     t.equal('An error occurred', err.message)
 
