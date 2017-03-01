@@ -27,7 +27,7 @@ module.exports = function () {
 
           result = plugins[i](data, done)
 
-          if (result && typeof result.then === 'function') {
+          if (result && typeof result === 'object' && result instanceof Promise) {
             result.then(function (data) {
               done(null, data)
             }, done)
